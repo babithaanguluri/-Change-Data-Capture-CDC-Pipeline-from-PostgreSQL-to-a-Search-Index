@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.pyc
+__pycache__/
+lsn_checkpoint.txt
+.DS_Store
+.venv
+venv/
+postgres_data/
