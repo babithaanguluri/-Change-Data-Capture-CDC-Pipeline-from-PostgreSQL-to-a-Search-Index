@@ -95,7 +95,7 @@ docker exec cdc_postgres psql -U postgres -d cdc_db -c "SELECT count(*) FROM pro
 docker exec cdc_postgres psql -U postgres -d cdc_db -c "SELECT * FROM pg_publication;"
 ```
 
-## Video Demo Steps
+## Steps
 
 To demonstrate the full functionality of the CDC pipeline, follow these steps:
 
