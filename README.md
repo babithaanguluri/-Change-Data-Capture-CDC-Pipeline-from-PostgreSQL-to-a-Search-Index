@@ -9,9 +9,13 @@ A complete Change Data Capture (CDC) pipeline orchestrating PostgreSQL, Meilisea
 - **CDC Consumer**: Python service that captures DB changes and updates the search index. It also notifies the API via webhooks.
 - **API/Frontend**: Node.js backend serving SSE for real-time updates and a React frontend for the dashboard.
 
-## Requirements
+## What You'll Need
 
-- Docker and Docker Compose
+To run this pipeline, you only need one thing installed on your computer:
+
+*   **Docker Desktop**: This handles everything else! You don't need to install PostgreSQL, Node.js, or Python locally because they all run inside secure, pre-configured containers.
+
+Make sure Docker is running before you start.
 
 20: 3. Open `http://localhost:8009` in your browser.
 21: 
