@@ -17,105 +17,109 @@ To run this pipeline, you only need one thing installed on your computer:
 
 Make sure Docker is running before you start.
 
-20: 3. Open `http://localhost:8009` in your browser.
-21: 
-22: ## API Implementation
-23: 
-24: The API is implemented using Node.js and Express. It handles two main responsibilities:
-25: 
-26: ### 1. CDC Notification Endpoint
-27: - **Endpoint**: `POST /api/cdc-notify`
-28: - **Purpose**: Received real-time notifications from the CDC Consumer.
-29: - **Implementation**:
-30:   ```javascript
-31:   app.post('/api/cdc-notify', (req, res) => {
-32:     const event = req.body;
-33:     // Broadcast to all connected SSE clients
-34:     clients.forEach(client => {
-35:       client.res.write(`data: ${JSON.stringify(event)}\n\n`);
-36:     });
-37:     res.status(200).json({ success: true });
-38:   });
-39:   ```
-40: - **Request Body Example**:
-41:   ```json
-42:   {
-43:     "table": "products",
-44:     "operation": "INSERT",
-45:     "timestamp": "2026-03-20T15:00:00Z"
-46:   }
-47:   ```
-48: 
-49: ### 2. SSE Stream Endpoint
-50: - **Endpoint**: `GET /api/cdc-stream`
-51: - **Purpose**: Streams CDC event metadata to connected clients.
-52: - **Headers**: `Content-Type: text/event-stream`
-53: - **Implementation**:
-54:   ```javascript
-55:   app.get('/api/cdc-stream', (req, res) => {
-56:     res.setHeader('Content-Type', 'text/event-stream');
-57:     res.setHeader('Cache-Control', 'no-cache');
-58:     res.setHeader('Connection', 'keep-alive');
-59:     // Add client to the list
-60:     const newClient = { id: Date.now(), res };
-61:     clients.push(newClient);
-62:     // Remove client on disconnect
-63:     req.on('close', () => {
-64:       clients = clients.filter(c => c.id !== newClient.id);
-65:     });
-66:   });
-67:   ```
-68: 
-69: ## API Reference & Testing Guide
-70: 
-71: Use these commands to verify every component of the pipeline during your video demo.
-72: 
-73: ### 1. Dashboard API (Node.js)
-74: 
+## Quick Start
+
+1. Clone the repository.
+2. Run `docker-compose up --build -d`.
+3. Open `http://localhost:8009` in your browser.
+
+## API Implementation
+
+The API is implemented using Node.js and Express. It handles two main responsibilities:
+
+### 1. CDC Notification Endpoint
+- **Endpoint**: `POST /api/cdc-notify`
+- **Purpose**: Received real-time notifications from the CDC Consumer.
+- **Implementation**:
+  ```javascript
+  app.post('/api/cdc-notify', (req, res) => {
+    const event = req.body;
+    // Broadcast to all connected SSE clients
+    clients.forEach(client => {
+      client.res.write(`data: ${JSON.stringify(event)}\n\n`);
+    });
+    res.status(200).json({ success: true });
+  });
+  ```
+- **Request Body Example**:
+  ```json
+  {
+    "table": "products",
+    "operation": "INSERT",
+    "timestamp": "2026-03-20T15:00:00Z"
+  }
+  ```
+
+### 2. SSE Stream Endpoint
+- **Endpoint**: `GET /api/cdc-stream`
+- **Purpose**: Streams CDC event metadata to connected clients.
+- **Headers**: `Content-Type: text/event-stream`
+- **Implementation**:
+  ```javascript
+  app.get('/api/cdc-stream', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    // Add client to the list
+    const newClient = { id: Date.now(), res };
+    clients.push(newClient);
+    // Remove client on disconnect
+    req.on('close', () => {
+      clients = clients.filter(c => c.id !== newClient.id);
+    });
+  });
+  ```
+
+## API Reference & Testing Guide
+
+Use these commands to verify every component of the pipeline during your video demo.
+
+### 1. Dashboard API (Node.js)
+
 | Method | Endpoint | Description | Test Command (PowerShell) | Test Command (Bash) |
 | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/api/health` | API Health Check | `Invoke-RestMethod http://localhost:8009/api/health` | `curl http://localhost:8009/api/health` |
 | **GET** | `/api/cdc-stream` | SSE Metadata Stream | `curl.exe -N -i http://localhost:8009/api/cdc-stream` | `curl -N -i http://localhost:8009/api/cdc-stream` |
 | **POST** | `/api/cdc-notify` | Manual CDC Trigger | *See below for JSON body* | *See below for JSON body* |
-75: 
-76: #### Manual CDC Trigger (POST)
-77: **Windows (PowerShell):**
-78: ```powershell
-79: Invoke-RestMethod -Uri "http://localhost:8009/api/cdc-notify" -Method Post -ContentType "application/json" -Body '{"table": "products", "operation": "INSERT", "timestamp": "2026-03-20T15:00:00Z"}'
-80: ```
-81: **Linux/macOS (Bash):**
-82: ```bash
-83: curl -X POST "http://localhost:8009/api/cdc-notify" -H "Content-Type: application/json" -d '{"table": "products", "operation": "INSERT", "timestamp": "2026-03-20T15:00:00Z"}'
-84: ```
-85: 
-86: ### 2. Search Engine API (Meilisearch)
-87: 
+
+#### Manual CDC Trigger (POST)
+**Windows (PowerShell):**
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8009/api/cdc-notify" -Method Post -ContentType "application/json" -Body '{"table": "products", "operation": "INSERT", "timestamp": "2026-03-20T15:00:00Z"}'
+```
+**Linux/macOS (Bash):**
+```bash
+curl -X POST "http://localhost:8009/api/cdc-notify" -H "Content-Type: application/json" -d '{"table": "products", "operation": "INSERT", "timestamp": "2026-03-20T15:00:00Z"}'
+```
+
+### 2. Search Engine API (Meilisearch)
+
 | Method | Endpoint | Description | Test Command (PowerShell) | Test Command (Bash) |
 | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/health` | Meilisearch Health | `Invoke-RestMethod http://localhost:7709/health` | `curl http://localhost:7709/health` |
 | **POST** | `/indexes/products/search` | Search Products | *See below for JSON body* | *See below for JSON body* |
-88: 
-89: #### Search Products (POST)
-90: **Windows (PowerShell):**
-91: ```powershell
-92: Invoke-RestMethod -Uri "http://localhost:7709/indexes/products/search" -Method Post -Headers @{"Authorization"="Bearer masterKey"} -ContentType "application/json" -Body '{"q": "Test Product"}'
-93: ```
-94: **Linux/macOS (Bash):**
-95: ```bash
-96: curl -X POST "http://localhost:7709/indexes/products/search" -H "Authorization: Bearer masterKey" -H "Content-Type: application/json" --data-binary '{ "q": "Test Product" }'
-97: ```
-98: 
-99: ### 3. Database Verification (PostgreSQL)
-100: **All Platforms:**
-101: ```bash
-102: # Verify total products (>= 5000)
-103: docker exec cdc_postgres psql -U postgres -d cdc_db -c "SELECT count(*) FROM products;"
-104: 
-105: # Verify Publication status
-106: docker exec cdc_postgres psql -U postgres -d cdc_db -c "SELECT * FROM pg_publication;"
-107: ```
-108: 
-109: ## Video Demo Steps
+
+#### Search Products (POST)
+**Windows (PowerShell):**
+```powershell
+Invoke-RestMethod -Uri "http://localhost:7709/indexes/products/search" -Method Post -Headers @{"Authorization"="Bearer masterKey"} -ContentType "application/json" -Body '{"q": "Test Product"}'
+```
+**Linux/macOS (Bash):**
+```bash
+curl -X POST "http://localhost:7709/indexes/products/search" -H "Authorization: Bearer masterKey" -H "Content-Type: application/json" --data-binary '{ "q": "Test Product" }'
+```
+
+### 3. Database Verification (PostgreSQL)
+**All Platforms:**
+```bash
+# Verify total products (>= 5000)
+docker exec cdc_postgres psql -U postgres -d cdc_db -c "SELECT count(*) FROM products;"
+
+# Verify Publication status
+docker exec cdc_postgres psql -U postgres -d cdc_db -c "SELECT * FROM pg_publication;"
+```
+
+## Video Demo Steps
 
 To demonstrate the full functionality of the CDC pipeline, follow these steps:
 
