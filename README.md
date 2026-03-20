@@ -28,19 +28,9 @@ Make sure Docker is running before you start.
 The API is implemented using Node.js and Express. It handles two main responsibilities:
 
 ### 1. CDC Notification Endpoint
-- **Endpoint**: `POST /api/cdc-notify`
+- **Method**: `POST`
+- **Endpoint**: `/api/cdc-notify`
 - **Purpose**: Received real-time notifications from the CDC Consumer.
-- **Implementation**:
-  ```javascript
-  app.post('/api/cdc-notify', (req, res) => {
-    const event = req.body;
-    // Broadcast to all connected SSE clients
-    clients.forEach(client => {
-      client.res.write(`data: ${JSON.stringify(event)}\n\n`);
-    });
-    res.status(200).json({ success: true });
-  });
-  ```
 - **Request Body Example**:
   ```json
   {
@@ -51,24 +41,10 @@ The API is implemented using Node.js and Express. It handles two main responsibi
   ```
 
 ### 2. SSE Stream Endpoint
-- **Endpoint**: `GET /api/cdc-stream`
+- **Method**: `GET`
+- **Endpoint**: `/api/cdc-stream`
 - **Purpose**: Streams CDC event metadata to connected clients.
 - **Headers**: `Content-Type: text/event-stream`
-- **Implementation**:
-  ```javascript
-  app.get('/api/cdc-stream', (req, res) => {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    // Add client to the list
-    const newClient = { id: Date.now(), res };
-    clients.push(newClient);
-    // Remove client on disconnect
-    req.on('close', () => {
-      clients = clients.filter(c => c.id !== newClient.id);
-    });
-  });
-  ```
 
 ## API Reference & Testing Guide
 
