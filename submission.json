@@ -1,0 +1,5 @@
+{
+  "apiBaseUrl": "http://localhost:8009",
+  "searchIndexUrl": "http://localhost:7709",
+  "searchIndexApiKey": "masterKey"
+}
